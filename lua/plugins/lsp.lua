@@ -16,10 +16,43 @@ return {
 		"j-hui/fidget.nvim",
 	},
 
-
 	config = function()
 		require("conform").setup({
-			formatters_by_ft = {},
+			{
+				notify_on_error = false,
+				format_on_save = function(bufnr)
+					-- You can specify filetypes to autoformat on save here:
+					local enabled_filetypes = {
+						lua = true,
+						python = true,
+						javascript = true,
+						typescript = true,
+						json = true,
+					}
+					if enabled_filetypes[vim.bo[bufnr].filetype] then
+						return { timeout_ms = 500 }
+					else
+						return nil
+					end
+				end,
+				default_format_opts = {
+					lsp_format = "fallback", -- Use external formatters if configured below, otherwise use LSP formatting. Set to `false` to disable LSP formatting entirely.
+				},
+				-- You can also specify external formatters in here.
+				formatters_by_ft = {
+					-- rust = { 'rustfmt' },
+					-- Conform can also run multiple formatters sequentially
+					-- python = { "isort", "black" },
+					--
+					-- You can use 'stop_after_first' to run the first available formatter from the list
+					javascript = { "oxfmt", "oxlint", "prettierd", "prettier", stop_after_first = true },
+					typescript = { "oxfmt", "oxlint", "prettier", stop_after_first = true },
+					json = { "oxfmt" },
+				},
+			},
+			vim.keymap.set({ "n", "v" }, "<leader>f", function()
+				require("conform").format({ async = true })
+			end, { desc = "[F]ormat buffer" }),
 		})
 		local cmp = require("cmp")
 		local cmp_lsp = require("cmp_nvim_lsp")
@@ -30,15 +63,17 @@ return {
 			cmp_lsp.default_capabilities()
 		)
 
-		local vue_language_server_path = vim.fn.expand '$MASON/packages' .. '/vue-language-server' .. '/node_modules/@vue/language-server'
+		local vue_language_server_path = vim.fn.expand("$MASON/packages")
+			.. "/vue-language-server"
+			.. "/node_modules/@vue/language-server"
 
-		local tsserver_filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue' }
+		local tsserver_filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" }
 		local vue_plugin = {
-			name = '@vue/typescript-plugin',
+			name = "@vue/typescript-plugin",
 			location = vue_language_server_path,
-			languages = {'vue'},
-			configNamespace = 'typescript',
-			enableForWorkspaceTypeScriptVersions = true
+			languages = { "vue" },
+			configNamespace = "typescript",
+			enableForWorkspaceTypeScriptVersions = true,
 		}
 
 		local vtsls_config = {
@@ -64,12 +99,12 @@ return {
 			filetypes = tsserver_filetypes,
 		}
 
-		local vue_ls_config = {			capabilities = capabilities, }
+		local vue_ls_config = { capabilities = capabilities }
 
-		vim.lsp.config('vtsls', vtsls_config)
-		vim.lsp.config('vue_ls', vue_ls_config)
+		vim.lsp.config("vtsls", vtsls_config)
+		vim.lsp.config("vue_ls", vue_ls_config)
 		--vim.lsp.config('ts_ls', ts_ls_config)
-		vim.lsp.enable({'vtsls', 'vue_ls'}) -- If using `ts_ls` replace `vtsls` to `ts_ls`
+		vim.lsp.enable({ "vtsls", "vue_ls" }) -- If using `ts_ls` replace `vtsls` to `ts_ls`
 
 		require("fidget").setup({})
 		require("mason").setup()
@@ -170,8 +205,8 @@ return {
 			sources = cmp.config.sources({
 				{ name = "nvim_lsp" },
 				{ name = "luasnip" }, -- For luasnip users.
-				{name = 'ts_ls'},
-				{name = 'vtsls'},
+				{ name = "ts_ls" },
+				{ name = "vtsls" },
 				{ name = "vue" },
 			}, {
 				{ name = "buffer" },
