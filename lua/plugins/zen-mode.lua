@@ -48,7 +48,7 @@ return {
           -- - listen_on unix:/tmp/kitty
           kitty = {
               enabled = false,
-              font = "+20", -- font size increment
+              font = "+100", -- font size increment
           },
           -- this will change the font size on alacritty when in zen mode
           -- requires  Alacritty Version 0.10.0 or higher
